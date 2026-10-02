@@ -32,6 +32,7 @@ export class QuotePageComponent {
   readonly expandedQty = signal(1);
   readonly cartOpen = signal(false);
   readonly clientAttempt = signal(false);
+  readonly started = signal(false);
   readonly errors = signal<string[]>([]);
   readonly qtyError = signal('');
   readonly pdfError = signal('');
@@ -56,6 +57,18 @@ export class QuotePageComponent {
     }
     return names;
   });
+  private readonly categoryPalette = [
+    '#3a57f0',
+    '#f59e0b',
+    '#a855f7',
+    '#06b6d4',
+    '#ef4444',
+    '#10b981',
+    '#ec4899',
+    '#6366f1',
+    '#f97316',
+    '#14b8a6',
+  ];
   readonly showSearch = computed(() => this.activeServices().length > 6);
   readonly showCategories = computed(() => this.categories().length > 1);
   readonly groups = computed(() => {
@@ -95,6 +108,11 @@ export class QuotePageComponent {
     });
   }
 
+  categoryColor(category: string): string {
+    const index = Math.max(0, this.categories().indexOf(category.trim() || 'Otros'));
+    return this.categoryPalette[index % this.categoryPalette.length];
+  }
+
   @HostListener('document:keydown.escape')
   closeCart(): void {
     this.cartOpen.set(false);
@@ -112,10 +130,12 @@ export class QuotePageComponent {
     this.lines.set(draft.lines);
     this.clientAttempt.set(false);
     this.errors.set([]);
+    this.started.set(true);
     this.step.set(draft.step === 'catalog' && this.clientErrors().length === 0 ? 'catalog' : 'client');
   }
 
   startNew(): void {
+    this.started.set(false);
     this.store.clearDraft();
     this.clientName.set('');
     this.date.set(todayIso());
@@ -158,6 +178,7 @@ export class QuotePageComponent {
       return;
     }
     this.errors.set([]);
+    this.started.set(true);
     this.step.set('catalog');
     this.persist();
   }

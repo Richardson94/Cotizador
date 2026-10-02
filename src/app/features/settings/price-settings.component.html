@@ -1,6 +1,6 @@
 <p class="lede">Los precios nuevos se usan en cotizaciones futuras. Las ya guardadas conservan el precio con el que se crearon.</p>
 
-<button type="button" class="btn btn-primary" (click)="openCreate()">+ Agregar servicio</button>
+<button type="button" class="btn btn-primary btn-add" (click)="openCreate()">+ Agregar servicio</button>
 
 @if (mode() !== 'closed') {
   <form class="panel editor-card" (submit)="save($event)">

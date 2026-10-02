@@ -3,10 +3,15 @@
     <section class="page narrow">
       <p class="eyebrow">Cotización en progreso</p>
       <h1>Encontramos una cotización en progreso.</h1>
-      <article class="panel">
-        <strong>{{ draftPreview()?.clientName || 'Sin nombre de cliente' }}</strong>
-        <p>{{ draftPreview()?.address || 'Sin dirección' }}</p>
-        <p class="muted">
+      <article class="panel draft-card">
+        <div class="history-top">
+          <p class="history-client"><span>Cliente:</span> {{ draftPreview()?.clientName || 'Sin nombre' }}</p>
+          @if (draftPreview()?.date) {
+            <time class="history-date">{{ dateLabel(draftPreview()!.date) }}</time>
+          }
+        </div>
+        <p class="history-address"><span>Dirección:</span> {{ draftPreview()?.address || 'Sin dirección' }}</p>
+        <p class="muted draft-count">
           {{ draftPreview()?.lines?.length || 0 }}
           {{ (draftPreview()?.lines?.length || 0) === 1 ? 'servicio' : 'servicios' }}
         </p>
@@ -54,7 +59,7 @@
             }
           </div>
         }
-        <button type="submit" class="btn btn-primary">Continuar</button>
+        <button type="submit" class="btn btn-primary">{{ started() ? 'Continuar' : 'Empezar' }}</button>
       </form>
     </section>
   }
@@ -62,15 +67,15 @@
     <section class="page" [class.has-cart]="!isDesktop()">
       <div class="quote-workspace">
         <div>
-          <p class="eyebrow">Nueva cotización</p>
-          <h1>Servicios</h1>
-          <button type="button" class="client-chip" (click)="editClient()">
-            <span>
-              <strong>{{ clientName() }}</strong>
-              <small>{{ dateLabel(date()) }} · {{ address() }}</small>
-            </span>
-            <span class="linkish">Editar</span>
+          <button type="button" class="quote-for" (click)="editClient()" aria-label="Editar datos del cliente">
+            <span class="quote-for-label">Cotización para:</span>
+            <span class="quote-for-name">{{ clientName() }}</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 20h4L19 9l-4-4L4 16v4z" />
+              <path d="M13.5 6.5l4 4" />
+            </svg>
           </button>
+          <h1>Servicios</h1>
 
           @if (showSearch()) {
             <label class="field">
@@ -104,7 +109,7 @@
             </article>
           } @else {
             @for (group of groups(); track group.category) {
-              <section class="catalog-group">
+              <section class="catalog-group" [style.--cat]="categoryColor(group.category)">
                 @if (showCategories() && category() === 'all') {
                   <h2>{{ group.category }}</h2>
                 }
@@ -116,7 +121,7 @@
                         <p class="rate"><strong class="money">{{ money(service.price) }}</strong> por {{ service.unit }}</p>
                       </div>
                       @if (expandedId() !== service.id) {
-                        <button type="button" class="btn btn-small" (click)="openService(service)">Agregar</button>
+                        <button type="button" class="btn btn-small btn-add" (click)="openService(service)">Agregar</button>
                       }
                     </div>
                     @if (timesInCart(service.id) > 0 && expandedId() !== service.id) {
@@ -138,7 +143,7 @@
                         @if (qtyError()) {
                           <p class="field-error">{{ qtyError() }}</p>
                         }
-                        <button type="button" class="btn btn-primary" (click)="confirmAdd(service)">Agregar a cotización</button>
+                        <button type="button" class="btn btn-primary btn-add" (click)="confirmAdd(service)">Agregar a cotización</button>
                         <button type="button" class="btn btn-ghost" (click)="expandedId.set(null)">Cancelar</button>
                       </div>
                     }
@@ -157,25 +162,29 @@
             }
           </div>
           <div class="sheet-body">
-            <p class="client-mini">
-              <strong>{{ clientName() }}</strong>
-              <span>{{ dateLabel(date()) }}</span>
-              <span>{{ address() }}</span>
-            </p>
+            <div class="client-mini">
+              <div class="client-mini-top">
+                <p class="client-mini-name"><span>Cliente:</span> {{ clientName() }}</p>
+                <time class="client-mini-date">{{ dateLabel(date()) }}</time>
+              </div>
+              <p class="client-mini-address"><span>Dirección:</span> {{ address() }}</p>
+            </div>
             @if (lines().length === 0) {
               <p class="muted">Todavía no agregaste servicios.</p>
             } @else {
               @for (line of lines(); track line.id) {
                 <article class="cart-line">
                   <div class="cart-line-top">
-                    <strong>{{ line.name }}</strong>
+                    <div class="cart-line-title">
+                      <strong>{{ line.name }}</strong>
+                      <p class="muted">{{ formula(line) }}</p>
+                    </div>
                     <button type="button" class="icon-btn" (click)="removeLine(line.id)" [attr.aria-label]="'Eliminar ' + line.name">
                       <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13" />
                       </svg>
                     </button>
                   </div>
-                  <p class="muted">{{ formula(line) }}</p>
                   <div class="cart-line-bottom">
                     <app-quantity-stepper
                       [quantity]="line.quantity"
