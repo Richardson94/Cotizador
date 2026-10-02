@@ -238,7 +238,7 @@ export class QuotePageComponent {
     return `${count} ${count === 1 ? 'servicio' : 'servicios'}`;
   }
 
-  generate(): void {
+  async generate(): Promise<void> {
     const messages = [
       ...this.clientErrors(),
       ...(this.lines().length === 0 ? ['Agrega al menos un servicio para generar la cotización.'] : []),
@@ -268,19 +268,19 @@ export class QuotePageComponent {
     this.cartOpen.set(false);
     this.pdfError.set('');
     try {
-      this.pdf.download(quote);
+      await this.pdf.download(quote);
     } catch {
       this.pdfError.set('No se pudo crear el PDF. La cotización quedó guardada en el historial.');
     }
   }
 
-  redownload(): void {
+  async redownload(): Promise<void> {
     const quote = this.savedQuote();
     if (!quote) {
       return;
     }
     try {
-      this.pdf.download(quote);
+      await this.pdf.download(quote);
       this.pdfError.set('');
     } catch {
       this.pdfError.set('No se pudo crear el PDF. Puedes descargarlo desde el historial.');

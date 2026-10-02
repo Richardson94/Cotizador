@@ -36,13 +36,13 @@ export class QuoteDetailPageComponent {
     });
   }
 
-  download(): void {
+  async download(): Promise<void> {
     const quote = this.quote();
     if (!quote) {
       return;
     }
     try {
-      this.pdf.download(quote);
+      await this.pdf.download(quote);
       this.pdfError.set('');
     } catch {
       this.pdfError.set('No se pudo crear el PDF.');

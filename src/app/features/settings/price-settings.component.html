@@ -1,0 +1,78 @@
+<p class="lede">Los precios nuevos se usan en cotizaciones futuras. Las ya guardadas conservan el precio con el que se crearon.</p>
+
+<button type="button" class="btn btn-primary" (click)="openCreate()">+ Agregar servicio</button>
+
+@if (mode() !== 'closed') {
+  <form class="panel editor-card" (submit)="save($event)">
+    <h2>{{ mode() === 'edit' ? 'Editar servicio' : 'Nuevo servicio' }}</h2>
+    <label class="field">
+      <span>Nombre</span>
+      <input [value]="name()" (input)="setName($event)" maxlength="80" placeholder="Ventana grande" />
+    </label>
+    <label class="field">
+      <span>Unidad</span>
+      <input [value]="unit()" (input)="setUnit($event)" maxlength="30" placeholder="unidad" />
+    </label>
+    <div class="chips">
+      @for (option of unitSuggestions(); track option) {
+        <button type="button" [class.on]="unit() === option" (click)="unit.set(option)">{{ option }}</button>
+      }
+    </div>
+    <label class="field">
+      <span>Precio</span>
+      <input [value]="price()" (input)="setPrice($event)" inputmode="decimal" placeholder="20" autocomplete="off" />
+    </label>
+    <label class="field">
+      <span>Categoría <em>opcional</em></span>
+      <input [value]="category()" (input)="setCategory($event)" maxlength="40" placeholder="Ventanas" />
+    </label>
+    <div class="chips">
+      @for (option of categorySuggestions(); track option) {
+        <button type="button" [class.on]="category() === option" (click)="category.set(option)">{{ option }}</button>
+      }
+    </div>
+    <label class="check">
+      <input type="checkbox" [checked]="active()" (change)="setActive($event)" />
+      Visible en el catálogo
+    </label>
+    @if (formError()) {
+      <p class="field-error">{{ formError() }}</p>
+    }
+    <div class="stack">
+      <button type="submit" class="btn btn-primary">Guardar</button>
+      <button type="button" class="btn btn-ghost" (click)="closeForm()">Cancelar</button>
+    </div>
+  </form>
+}
+
+@if (services().length === 0) {
+  <article class="panel empty">
+    <p>El catálogo está vacío. Agrega el primer servicio para empezar a cotizar.</p>
+  </article>
+} @else {
+  <div class="price-list">
+    @for (service of services(); track service.id) {
+      <article class="price-card">
+        <div>
+          <h3>{{ service.name }}</h3>
+          <p class="muted">
+            {{ service.category || 'Sin categoría' }} · {{ service.unit }}
+            @if (!service.active) {
+              <span class="pill warn">Oculto</span>
+            }
+          </p>
+        </div>
+        <strong class="price">{{ money(service.price) }}</strong>
+        <div class="row-actions">
+          <button type="button" class="btn btn-small" (click)="openEdit(service)">Editar</button>
+          @if (pendingDeleteId() !== service.id) {
+            <button type="button" class="btn btn-small danger" (click)="pendingDeleteId.set(service.id)">Eliminar</button>
+          } @else {
+            <button type="button" class="btn btn-small danger" (click)="remove(service.id)">Confirmar</button>
+            <button type="button" class="btn btn-small" (click)="pendingDeleteId.set(null)">Cancelar</button>
+          }
+        </div>
+      </article>
+    }
+  </div>
+}

@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 
+
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'cotizar' },
   {
@@ -17,6 +18,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/history/quote-detail-page.component').then((m) => m.QuoteDetailPageComponent),
     title: 'Cotización',
+  },
+  {
+    path: 'configuracion',
+    loadComponent: () => import('./features/settings/settings-page.component').then((m) => m.SettingsPageComponent),
+    title: 'Configuración',
   },
   { path: '**', redirectTo: 'cotizar' },
 ];

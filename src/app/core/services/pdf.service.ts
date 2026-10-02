@@ -9,10 +9,17 @@ import { CompanyService } from './company.service';
 export class PdfService {
   private readonly companyService = inject(CompanyService);
 
-  download(quote: Quote): void {
-    const company = this.companyService.config();
+  private logoPromise: Promise<string | null> | null = null;
+
+  async download(quote: Quote): Promise<void> {
+    const company = { ...this.companyService.config(), logoDataUrl: await this.logo() };
     const doc = this.build(quote, company);
     doc.save(fileName(quote));
+  }
+
+  private logo(): Promise<string | null> {
+    this.logoPromise ??= loadLogoDataUrl();
+    return this.logoPromise;
   }
 
   private build(quote: Quote, company: CompanyConfig): jsPDF {
@@ -184,54 +191,82 @@ function drawLetterhead(
   ink: [number, number, number],
   muted: [number, number, number],
 ): number {
+  const logoWidth = 26;
+  const logoHeight = logoWidth * (533 / 468);
   let textX = margin;
+  let blockBottom = 28;
   if (company.logoDataUrl) {
     try {
       const format = imageFormat(company.logoDataUrl);
-      doc.addImage(company.logoDataUrl, format, margin, 12, 18, 18);
-      textX = margin + 22;
+      doc.addImage(company.logoDataUrl, format, margin, 10, logoWidth, logoHeight);
+      textX = margin + logoWidth + 4;
+      blockBottom = 10 + logoHeight;
     } catch {
       textX = margin;
     }
   }
 
+  const nameWidth = pageWidth - textX - margin;
   doc.setTextColor(...blue);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  const name = company.name || 'Servicios de limpieza';
-  const nameWidth = pageWidth - textX - margin;
-  doc.text((doc.splitTextToSize(name, nameWidth) as string[])[0] ?? name, textX, 18);
+  doc.setFontSize(14);
+  const name = company.name || 'Corporación Genesis ITG';
+  const nameLines = doc.splitTextToSize(name, nameWidth) as string[];
+  doc.text(nameLines, textX, 16);
+  let textY = 16 + nameLines.length * 5.6;
+
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.setTextColor(...muted);
-  const tagline = company.tagline || 'Servicio de limpieza';
-  doc.text((doc.splitTextToSize(tagline, nameWidth) as string[])[0] ?? tagline, textX, 24);
+  const tagline = company.tagline.trim();
+  if (tagline) {
+    const tagLines = doc.splitTextToSize(tagline, nameWidth) as string[];
+    doc.text(tagLines, textX, textY);
+    textY += tagLines.length * 4.6;
+  }
+
+  const ruleY = Math.max(blockBottom, textY) + 3;
   doc.setDrawColor(...blue);
   doc.setLineWidth(0.6);
-  doc.line(margin, 32, pageWidth - margin, 32);
+  doc.line(margin, ruleY, pageWidth - margin, ruleY);
 
-  const contacts = [
-    company.address,
-    company.phone ? `Tel. ${company.phone}` : '',
-    company.mobile ? `Cel. ${company.mobile}` : '',
-    company.whatsapp ? `WhatsApp ${company.whatsapp}` : '',
-    company.email,
-    company.website,
-  ].filter((value) => value.trim().length > 0);
+  const contacts = [company.address, company.phone ? `Tel. ${company.phone}` : ''].filter(
+    (value) => value.trim().length > 0,
+  );
 
-  let y = 40;
+  let y = ruleY + 6;
   if (contacts.length > 0) {
     doc.setTextColor(...muted);
     doc.setFontSize(9);
-    const contactLines = doc.splitTextToSize(contacts.join('   ·   '), pageWidth - margin * 2) as string[];
+    const contactLines = contacts.flatMap(
+      (value) => doc.splitTextToSize(value, pageWidth - margin * 2) as string[],
+    );
     doc.text(contactLines, margin, y);
-    y += contactLines.length * 4.5 + 6;
+    y += contactLines.length * 4.5 + 4;
   } else {
     y += 2;
   }
 
   doc.setTextColor(...ink);
   return y;
+}
+
+async function loadLogoDataUrl(): Promise<string | null> {
+  try {
+    const response = await fetch('assets/logo.png');
+    if (!response.ok) {
+      return null;
+    }
+    const blob = await response.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : null);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
 }
 
 function imageFormat(dataUrl: string): 'PNG' | 'JPEG' | 'WEBP' {

@@ -30,7 +30,7 @@
             (input)="setClientName($event)"
             autocomplete="off"
             maxlength="120"
-            placeholder="Juan Pérez"
+            placeholder="Corporación Genesis ITG"
           />
         </label>
         <label class="field field-inline">
@@ -44,7 +44,7 @@
             [value]="address()"
             (input)="setAddress($event)"
             maxlength="240"
-            placeholder="Av. Principal #123, La Paz"
+            placeholder="Sucursal 0: Calle Juan Ondarza Nro 1575 Villa Nuevo Potosi, La Paz"
           ></textarea>
         </label>
         @if (clientAttempt() && clientErrors().length) {
@@ -96,6 +96,7 @@
           @if (activeServices().length === 0) {
             <article class="panel empty">
               <p>No hay servicios en el catálogo.</p>
+              <a routerLink="/configuracion" class="btn btn-primary">Configurar precios</a>
             </article>
           } @else if (groups().length === 0) {
             <article class="panel empty">

@@ -64,11 +64,11 @@ export const DEFAULT_SERVICES: ServiceCatalogItem[] = [
 ];
 
 export const DEFAULT_COMPANY: CompanyConfig = {
-  name: 'Servicios de limpieza',
-  tagline: 'Servicio de limpieza',
+  name: 'Corporación Genesis ITG',
+  tagline: 'Empresa de Servicios de Limpieza y Mantenimiento',
   logoDataUrl: null,
-  address: '',
-  phone: '',
+  address: 'Sucursal 0: Calle Juan Ondarza Nro 1575 Villa Nuevo Potosi, La Paz',
+  phone: '76513333 - 72025610',
   mobile: '',
   whatsapp: '',
   email: '',
