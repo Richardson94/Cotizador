@@ -182,8 +182,8 @@ export class QuotePageComponent {
     return messages;
   }
 
-  qtyInCart(serviceId: string): number {
-    return this.lines().find((line) => line.serviceId === serviceId)?.quantity ?? 0;
+  timesInCart(serviceId: string): number {
+    return this.lines().filter((line) => line.serviceId === serviceId).length;
   }
 
   openService(service: ServiceCatalogItem): void {
@@ -192,7 +192,7 @@ export class QuotePageComponent {
       return;
     }
     this.expandedId.set(service.id);
-    this.expandedQty.set(this.qtyInCart(service.id) || 1);
+    this.expandedQty.set(1);
     this.qtyError.set('');
   }
 
@@ -206,14 +206,8 @@ export class QuotePageComponent {
       this.qtyError.set('La cantidad debe ser mayor que 0.');
       return;
     }
-    const existing = this.lines().find((line) => line.serviceId === service.id);
-    const line = buildQuoteLine(service, quantity, existing?.id);
-    this.lines.update((lines) => {
-      if (!existing) {
-        return [...lines, line];
-      }
-      return lines.map((current) => (current.serviceId === service.id ? line : current));
-    });
+    const line = buildQuoteLine(service, quantity);
+    this.lines.update((lines) => [...lines, line]);
     this.expandedId.set(null);
     this.qtyError.set('');
     this.errors.set([]);

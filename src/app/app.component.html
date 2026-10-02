@@ -8,9 +8,14 @@
       </div>
     </div>
     <nav class="sidebar-nav" aria-label="Principal">
-      <a routerLink="/cotizar" routerLinkActive="active">🧾 Cotizar</a>
-      <a routerLink="/historial" routerLinkActive="active">📋 Historial</a>
-      <a routerLink="/configuracion" routerLinkActive="active">⚙️ Configuración</a>
+      <a routerLink="/cotizar" routerLinkActive="active">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7.2L19 8.2V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z"/><path d="M14 3.5V8.2H19"/><path d="M9 12.5h6M9 16h4"/></svg>
+        Cotizar
+      </a>
+      <a routerLink="/historial" routerLinkActive="active">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 2"/></svg>
+        Historial
+      </a>
     </nav>
   </aside>
 
@@ -20,16 +25,12 @@
 
   <nav class="bottom-nav" aria-label="Principal">
     <a routerLink="/cotizar" routerLinkActive="active">
-      <span aria-hidden="true">🧾</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7.2L19 8.2V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z"/><path d="M14 3.5V8.2H19"/><path d="M9 12.5h6M9 16h4"/></svg>
       Cotizar
     </a>
     <a routerLink="/historial" routerLinkActive="active">
-      <span aria-hidden="true">📋</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 2"/></svg>
       Historial
-    </a>
-    <a routerLink="/configuracion" routerLinkActive="active">
-      <span aria-hidden="true">⚙️</span>
-      Configuración
     </a>
   </nav>
 </div>

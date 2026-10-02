@@ -18,10 +18,5 @@ export const routes: Routes = [
       import('./features/history/quote-detail-page.component').then((m) => m.QuoteDetailPageComponent),
     title: 'Cotización',
   },
-  {
-    path: 'configuracion',
-    loadComponent: () => import('./features/settings/settings-page.component').then((m) => m.SettingsPageComponent),
-    title: 'Configuración',
-  },
   { path: '**', redirectTo: 'cotizar' },
 ];

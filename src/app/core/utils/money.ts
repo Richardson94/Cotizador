@@ -26,7 +26,7 @@ export function formatAmount(value: number): string {
 }
 
 export function formatBs(value: number): string {
-  return `Bs ${formatAmount(value)}`;
+  return `${formatAmount(value)} Bs`;
 }
 
 export function formatEditableNumber(value: number): string {

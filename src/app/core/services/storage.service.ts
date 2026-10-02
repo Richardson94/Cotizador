@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { DEFAULT_COMPANY, DEFAULT_SERVICES, STORAGE_KEYS } from '../data/defaults';
-import { CompanyConfig, Quote, QuoteDraft, QuoteLine, ServiceCatalogItem } from '../models/models';
+import { CATALOG_VERSION, DEFAULT_SERVICES, STORAGE_KEYS } from '../data/defaults';
+import { Quote, QuoteDraft, QuoteLine, ServiceCatalogItem } from '../models/models';
 import { isIsoDate } from '../utils/dates';
 import { isMeaningfulDraft } from '../utils/draft';
 import { lineSubtotal, roundMoney } from '../utils/money';
@@ -22,9 +22,11 @@ export class StorageService {
 
   readServices(): ServiceCatalogItem[] {
     const raw = this.get(STORAGE_KEYS.services);
-    if (raw === null) {
+    const version = this.get(STORAGE_KEYS.catalogVersion);
+    if (raw === null || version !== CATALOG_VERSION) {
       const seeded = DEFAULT_SERVICES.map((service) => ({ ...service }));
       this.writeServices(seeded);
+      this.set(STORAGE_KEYS.catalogVersion, CATALOG_VERSION);
       return seeded;
     }
     const parsed = this.parseJson(raw);
@@ -55,24 +57,6 @@ export class StorageService {
 
   writeQuotes(quotes: Quote[]): void {
     this.set(STORAGE_KEYS.quotes, JSON.stringify(quotes));
-  }
-
-  readCompany(): CompanyConfig {
-    const raw = this.get(STORAGE_KEYS.company);
-    if (raw === null) {
-      const seeded = { ...DEFAULT_COMPANY };
-      this.writeCompany(seeded);
-      return seeded;
-    }
-    const parsed = this.parseJson(raw);
-    if (!parsed || typeof parsed !== 'object') {
-      return { ...DEFAULT_COMPANY };
-    }
-    return normalizeCompany(parsed as Partial<CompanyConfig>);
-  }
-
-  writeCompany(company: CompanyConfig): void {
-    this.set(STORAGE_KEYS.company, JSON.stringify(company));
   }
 
   readDraft(): QuoteDraft | null {
@@ -217,26 +201,6 @@ function normalizeQuote(value: unknown): Quote | null {
     lines,
     total: roundMoney(lines.reduce((sum, line) => sum + line.subtotal, 0)),
     createdAt: typeof record.createdAt === 'string' ? record.createdAt : record.date,
-  };
-}
-
-function normalizeCompany(value: Partial<CompanyConfig>): CompanyConfig {
-  const text = (field: keyof CompanyConfig, fallback: string) =>
-    typeof value[field] === 'string' ? String(value[field]) : fallback;
-
-  return {
-    name: text('name', DEFAULT_COMPANY.name),
-    tagline: text('tagline', DEFAULT_COMPANY.tagline),
-    logoDataUrl: typeof value.logoDataUrl === 'string' && value.logoDataUrl.startsWith('data:image/')
-      ? value.logoDataUrl
-      : null,
-    address: text('address', ''),
-    phone: text('phone', ''),
-    mobile: text('mobile', ''),
-    whatsapp: text('whatsapp', ''),
-    email: text('email', ''),
-    website: text('website', ''),
-    footerNote: text('footerNote', DEFAULT_COMPANY.footerNote),
   };
 }
 

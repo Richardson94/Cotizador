@@ -23,7 +23,7 @@
       <h1>Datos del cliente</h1>
       <p class="lede">Nombre, fecha y dirección. Después eliges los servicios.</p>
       <form class="panel" (submit)="$event.preventDefault(); continueToCatalog()">
-        <label class="field">
+        <label class="field field-inline">
           <span>Cliente</span>
           <input
             [value]="clientName()"
@@ -33,7 +33,7 @@
             placeholder="Juan Pérez"
           />
         </label>
-        <label class="field">
+        <label class="field field-inline">
           <span>Fecha</span>
           <input type="date" [value]="date()" (input)="setDate($event)" />
         </label>
@@ -96,7 +96,6 @@
           @if (activeServices().length === 0) {
             <article class="panel empty">
               <p>No hay servicios en el catálogo.</p>
-              <a routerLink="/configuracion" class="btn btn-primary">Configurar precios</a>
             </article>
           } @else if (groups().length === 0) {
             <article class="panel empty">
@@ -109,20 +108,18 @@
                   <h2>{{ group.category }}</h2>
                 }
                 @for (service of group.items; track service.id) {
-                  <article class="service-card" [class.in-cart]="qtyInCart(service.id) > 0">
+                  <article class="service-card" [class.in-cart]="timesInCart(service.id) > 0">
                     <div class="service-top">
                       <div>
                         <h3>{{ service.name }}</h3>
-                        <p class="price">{{ money(service.price) }} / {{ service.unit }}</p>
+                        <p class="rate"><strong class="money">{{ money(service.price) }}</strong> por {{ service.unit }}</p>
                       </div>
                       @if (expandedId() !== service.id) {
-                        <button type="button" class="btn btn-small" (click)="openService(service)">
-                          {{ qtyInCart(service.id) > 0 ? 'Editar' : 'Agregar' }}
-                        </button>
+                        <button type="button" class="btn btn-small" (click)="openService(service)">Agregar</button>
                       }
                     </div>
-                    @if (qtyInCart(service.id) > 0 && expandedId() !== service.id) {
-                      <p class="pill">En cotización · {{ qty(qtyInCart(service.id)) }} {{ service.unit }}</p>
+                    @if (timesInCart(service.id) > 0 && expandedId() !== service.id) {
+                      <p class="pill">En cotización · {{ timesInCart(service.id) }} {{ timesInCart(service.id) === 1 ? 'vez' : 'veces' }}</p>
                     }
                     @if (expandedId() === service.id) {
                       <div class="add-panel">
@@ -140,9 +137,7 @@
                         @if (qtyError()) {
                           <p class="field-error">{{ qtyError() }}</p>
                         }
-                        <button type="button" class="btn btn-primary" (click)="confirmAdd(service)">
-                          {{ qtyInCart(service.id) > 0 ? 'Actualizar' : 'Agregar a cotización' }}
-                        </button>
+                        <button type="button" class="btn btn-primary" (click)="confirmAdd(service)">Agregar a cotización</button>
                         <button type="button" class="btn btn-ghost" (click)="expandedId.set(null)">Cancelar</button>
                       </div>
                     }

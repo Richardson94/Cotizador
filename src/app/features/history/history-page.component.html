@@ -27,13 +27,12 @@
     <div class="history-list">
       @for (quote of filtered(); track quote.id) {
         <a class="history-card" [routerLink]="['/historial', quote.id]">
-          <div>
-            <strong>{{ quote.clientName }}</strong>
-            <span>{{ quote.number }}</span>
+          <div class="history-top">
+            <p class="history-client"><span>Cliente:</span> {{ quote.clientName }}</p>
+            <time class="history-date">{{ dateLabel(quote.date) }}</time>
           </div>
-          <p>{{ dateLabel(quote.date) }}</p>
-          <p class="muted">{{ quote.address }}</p>
-          <p class="history-total">Total: {{ money(quote.total) }}</p>
+          <p class="history-address"><span>Dirección:</span> {{ quote.address }}</p>
+          <p class="history-total"><span>Total:</span> {{ money(quote.total) }}</p>
         </a>
       }
     </div>
