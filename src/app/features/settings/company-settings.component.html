@@ -1,0 +1,55 @@
+<p class="lede">Esta información aparece en el encabezado del PDF.</p>
+
+<form class="panel" (submit)="save($event)">
+  <label class="field">
+    <span>Nombre de empresa</span>
+    <input [value]="name()" (input)="setText('name', $event)" maxlength="80" />
+  </label>
+  <label class="field">
+    <span>Descripción corta</span>
+    <input [value]="tagline()" (input)="setText('tagline', $event)" maxlength="80" placeholder="Servicio de limpieza" />
+  </label>
+  <div class="field">
+    <span>Logo</span>
+    @if (logo()) {
+      <img class="logo-preview" [src]="logo()" alt="Logo de la empresa" />
+      <button type="button" class="btn btn-ghost" (click)="removeLogo()">Quitar logo</button>
+    }
+    <input type="file" accept="image/*" (change)="onLogo($event)" />
+    @if (logoError()) {
+      <p class="field-error">{{ logoError() }}</p>
+    }
+  </div>
+  <label class="field">
+    <span>Dirección</span>
+    <input [value]="address()" (input)="setText('address', $event)" maxlength="160" />
+  </label>
+  <label class="field">
+    <span>Teléfono</span>
+    <input [value]="phone()" (input)="setText('phone', $event)" maxlength="40" inputmode="tel" />
+  </label>
+  <label class="field">
+    <span>Celular</span>
+    <input [value]="mobile()" (input)="setText('mobile', $event)" maxlength="40" inputmode="tel" />
+  </label>
+  <label class="field">
+    <span>WhatsApp</span>
+    <input [value]="whatsapp()" (input)="setText('whatsapp', $event)" maxlength="40" inputmode="tel" />
+  </label>
+  <label class="field">
+    <span>Email</span>
+    <input [value]="email()" (input)="setText('email', $event)" maxlength="80" inputmode="email" />
+  </label>
+  <label class="field">
+    <span>Sitio web <em>opcional</em></span>
+    <input [value]="website()" (input)="setText('website', $event)" maxlength="120" inputmode="url" />
+  </label>
+  <label class="field">
+    <span>Texto al pie del documento</span>
+    <textarea rows="3" [value]="footerNote()" (input)="setText('footerNote', $event)" maxlength="180"></textarea>
+  </label>
+  @if (savedMessage()) {
+    <p class="saved-note">{{ savedMessage() }}</p>
+  }
+  <button type="submit" class="btn btn-primary">Guardar</button>
+</form>

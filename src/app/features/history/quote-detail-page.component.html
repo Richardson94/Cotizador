@@ -1,0 +1,46 @@
+<section class="page narrow">
+  <a routerLink="/historial" class="back-link">← Historial</a>
+
+  @if (missing()) {
+    <article class="panel empty">
+      <p>No encontramos esa cotización.</p>
+      <a routerLink="/historial" class="btn btn-primary">Volver al historial</a>
+    </article>
+  } @else if (quote()) {
+    <p class="eyebrow">{{ quote()!.number }}</p>
+    <h1>{{ quote()!.clientName }}</h1>
+    <p class="lede">{{ dateLabel(quote()!.date) }} · {{ quote()!.address }}</p>
+
+    <div class="detail-list">
+      @for (line of quote()!.lines; track line.id) {
+        <article class="cart-line">
+          <strong>{{ line.name }}</strong>
+          <p class="muted">{{ formula(line) }}</p>
+          <p class="line-total">{{ money(line.subtotal) }}</p>
+        </article>
+      }
+    </div>
+
+    <div class="total-row panel">
+      <span>Total</span>
+      <strong>{{ money(quote()!.total) }}</strong>
+    </div>
+
+    @if (pdfError()) {
+      <p class="field-error">{{ pdfError() }}</p>
+    }
+
+    <div class="stack">
+      <button type="button" class="btn btn-primary" (click)="download()">Generar PDF</button>
+      @if (!confirmDelete()) {
+        <button type="button" class="btn btn-danger" (click)="confirmDelete.set(true)">Eliminar cotización</button>
+      } @else {
+        <div class="confirm-box">
+          <p>¿Eliminar esta cotización?</p>
+          <button type="button" class="btn btn-danger" (click)="remove()">Sí, eliminar</button>
+          <button type="button" class="btn btn-secondary" (click)="confirmDelete.set(false)">Cancelar</button>
+        </div>
+      }
+    </div>
+  }
+</section>

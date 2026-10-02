@@ -1,0 +1,41 @@
+<section class="page">
+  <p class="eyebrow">Guardadas en este dispositivo</p>
+  <h1>Historial de cotizaciones</h1>
+
+  <div class="filters">
+    <label class="field">
+      <span class="sr-only">Buscar por nombre</span>
+      <input [value]="query()" (input)="setQuery($event)" placeholder="Buscar por nombre" autocomplete="off" />
+    </label>
+    <label class="field">
+      <span>Fecha</span>
+      <input type="date" [value]="date()" (input)="setDate($event)" />
+    </label>
+  </div>
+
+  @if (filtered().length === 0) {
+    <article class="panel empty">
+      @if (query() || date()) {
+        <p>No hay cotizaciones con ese filtro.</p>
+        <button type="button" class="btn btn-secondary" (click)="query.set(''); date.set('')">Limpiar filtros</button>
+      } @else {
+        <p>Todavía no hay cotizaciones. Cuando generes un PDF, quedará guardada aquí.</p>
+        <a routerLink="/cotizar" class="btn btn-primary">Crear cotización</a>
+      }
+    </article>
+  } @else {
+    <div class="history-list">
+      @for (quote of filtered(); track quote.id) {
+        <a class="history-card" [routerLink]="['/historial', quote.id]">
+          <div>
+            <strong>{{ quote.clientName }}</strong>
+            <span>{{ quote.number }}</span>
+          </div>
+          <p>{{ dateLabel(quote.date) }}</p>
+          <p class="muted">{{ quote.address }}</p>
+          <p class="history-total">Total: {{ money(quote.total) }}</p>
+        </a>
+      }
+    </div>
+  }
+</section>

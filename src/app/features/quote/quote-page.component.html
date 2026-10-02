@@ -1,0 +1,241 @@
+@switch (step()) {
+  @case ('ask') {
+    <section class="page narrow">
+      <p class="eyebrow">Cotización en progreso</p>
+      <h1>Encontramos una cotización en progreso.</h1>
+      <article class="panel">
+        <strong>{{ draftPreview()?.clientName || 'Sin nombre de cliente' }}</strong>
+        <p>{{ draftPreview()?.address || 'Sin dirección' }}</p>
+        <p class="muted">
+          {{ draftPreview()?.lines?.length || 0 }}
+          {{ (draftPreview()?.lines?.length || 0) === 1 ? 'servicio' : 'servicios' }}
+        </p>
+      </article>
+      <div class="stack">
+        <button type="button" class="btn btn-primary" (click)="continueDraft()">Continuar</button>
+        <button type="button" class="btn btn-secondary" (click)="startNew()">Empezar nueva</button>
+      </div>
+    </section>
+  }
+  @case ('client') {
+    <section class="page narrow">
+      <p class="eyebrow">Nueva cotización</p>
+      <h1>Datos del cliente</h1>
+      <p class="lede">Nombre, fecha y dirección. Después eliges los servicios.</p>
+      <form class="panel" (submit)="$event.preventDefault(); continueToCatalog()">
+        <label class="field">
+          <span>Cliente</span>
+          <input
+            [value]="clientName()"
+            (input)="setClientName($event)"
+            autocomplete="off"
+            maxlength="120"
+            placeholder="Juan Pérez"
+          />
+        </label>
+        <label class="field">
+          <span>Fecha</span>
+          <input type="date" [value]="date()" (input)="setDate($event)" />
+        </label>
+        <label class="field">
+          <span>Dirección</span>
+          <textarea
+            rows="2"
+            [value]="address()"
+            (input)="setAddress($event)"
+            maxlength="240"
+            placeholder="Av. Principal #123, La Paz"
+          ></textarea>
+        </label>
+        @if (clientAttempt() && clientErrors().length) {
+          <div class="error-list">
+            @for (message of clientErrors(); track message) {
+              <p>{{ message }}</p>
+            }
+          </div>
+        }
+        <button type="submit" class="btn btn-primary">Continuar</button>
+      </form>
+    </section>
+  }
+  @case ('catalog') {
+    <section class="page" [class.has-cart]="!isDesktop()">
+      <div class="quote-workspace">
+        <div>
+          <p class="eyebrow">Nueva cotización</p>
+          <h1>Servicios</h1>
+          <button type="button" class="client-chip" (click)="editClient()">
+            <span>
+              <strong>{{ clientName() }}</strong>
+              <small>{{ dateLabel(date()) }} · {{ address() }}</small>
+            </span>
+            <span class="linkish">Editar</span>
+          </button>
+
+          @if (showSearch()) {
+            <label class="field">
+              <span class="sr-only">Buscar servicio</span>
+              <input
+                [value]="search()"
+                (input)="setSearch($event)"
+                placeholder="Buscar servicio"
+                autocomplete="off"
+              />
+            </label>
+          }
+
+          @if (showCategories()) {
+            <div class="chips" role="tablist" aria-label="Categorías">
+              <button type="button" [class.on]="category() === 'all'" (click)="category.set('all')">Todos</button>
+              @for (name of categories(); track name) {
+                <button type="button" [class.on]="category() === name" (click)="category.set(name)">{{ name }}</button>
+              }
+            </div>
+          }
+
+          @if (activeServices().length === 0) {
+            <article class="panel empty">
+              <p>No hay servicios en el catálogo.</p>
+              <a routerLink="/configuracion" class="btn btn-primary">Configurar precios</a>
+            </article>
+          } @else if (groups().length === 0) {
+            <article class="panel empty">
+              <p>Ningún servicio coincide con la búsqueda.</p>
+            </article>
+          } @else {
+            @for (group of groups(); track group.category) {
+              <section class="catalog-group">
+                @if (showCategories() && category() === 'all') {
+                  <h2>{{ group.category }}</h2>
+                }
+                @for (service of group.items; track service.id) {
+                  <article class="service-card" [class.in-cart]="qtyInCart(service.id) > 0">
+                    <div class="service-top">
+                      <div>
+                        <h3>{{ service.name }}</h3>
+                        <p class="price">{{ money(service.price) }} / {{ service.unit }}</p>
+                      </div>
+                      @if (expandedId() !== service.id) {
+                        <button type="button" class="btn btn-small" (click)="openService(service)">
+                          {{ qtyInCart(service.id) > 0 ? 'Editar' : 'Agregar' }}
+                        </button>
+                      }
+                    </div>
+                    @if (qtyInCart(service.id) > 0 && expandedId() !== service.id) {
+                      <p class="pill">En cotización · {{ qty(qtyInCart(service.id)) }} {{ service.unit }}</p>
+                    }
+                    @if (expandedId() === service.id) {
+                      <div class="add-panel">
+                        <span class="field-label">Cantidad</span>
+                        <app-quantity-stepper
+                          [quantity]="expandedQty()"
+                          [autoFocus]="true"
+                          (quantityChange)="expandedQty.set($event)"
+                          (submitQty)="confirmAdd(service)"
+                        />
+                        <div class="subtotal-row">
+                          <span>Subtotal</span>
+                          <strong>{{ money(previewSubtotal(service)) }}</strong>
+                        </div>
+                        @if (qtyError()) {
+                          <p class="field-error">{{ qtyError() }}</p>
+                        }
+                        <button type="button" class="btn btn-primary" (click)="confirmAdd(service)">
+                          {{ qtyInCart(service.id) > 0 ? 'Actualizar' : 'Agregar a cotización' }}
+                        </button>
+                        <button type="button" class="btn btn-ghost" (click)="expandedId.set(null)">Cancelar</button>
+                      </div>
+                    }
+                  </article>
+                }
+              </section>
+            }
+          }
+        </div>
+
+        <aside class="cart-sheet" [class.open]="cartOpen()" aria-label="Resumen de la cotización">
+          <div class="sheet-head">
+            <h2>Tu cotización</h2>
+            @if (!isDesktop()) {
+              <button type="button" class="btn btn-ghost sheet-close" (click)="cartOpen.set(false)">Cerrar</button>
+            }
+          </div>
+          <div class="sheet-body">
+            <p class="client-mini">
+              <strong>{{ clientName() }}</strong>
+              <span>{{ dateLabel(date()) }}</span>
+              <span>{{ address() }}</span>
+            </p>
+            @if (lines().length === 0) {
+              <p class="muted">Todavía no agregaste servicios.</p>
+            } @else {
+              @for (line of lines(); track line.id) {
+                <article class="cart-line">
+                  <div class="cart-line-top">
+                    <strong>{{ line.name }}</strong>
+                    <button type="button" class="icon-btn" (click)="removeLine(line.id)" [attr.aria-label]="'Eliminar ' + line.name">
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13" />
+                      </svg>
+                    </button>
+                  </div>
+                  <p class="muted">{{ formula(line) }}</p>
+                  <div class="cart-line-bottom">
+                    <app-quantity-stepper
+                      [quantity]="line.quantity"
+                      (quantityChange)="updateLineQty(line.id, $event)"
+                    />
+                    <strong>{{ money(line.subtotal) }}</strong>
+                  </div>
+                </article>
+              }
+            }
+          </div>
+          <div class="sheet-foot">
+            @if (errors().length) {
+              <div class="error-list">
+                @for (message of errors(); track message) {
+                  <p>{{ message }}</p>
+                }
+              </div>
+            }
+            <div class="total-row">
+              <span>Total</span>
+              <strong>{{ money(total()) }}</strong>
+            </div>
+            <button type="button" class="btn btn-primary" (click)="generate()">Generar PDF</button>
+          </div>
+        </aside>
+      </div>
+
+      @if (!isDesktop()) {
+        <button type="button" class="cart-bar" (click)="cartOpen.set(true)">
+          <span>🛒 {{ cartLabel() }}</span>
+          <strong>{{ money(total()) }}</strong>
+        </button>
+      }
+      @if (cartOpen() && !isDesktop()) {
+        <button type="button" class="backdrop" aria-label="Cerrar resumen" (click)="cartOpen.set(false)"></button>
+      }
+    </section>
+  }
+  @case ('success') {
+    <section class="page narrow">
+      <article class="panel success-card">
+        <p class="eyebrow">Cotización lista</p>
+        <h1>{{ savedQuote()?.number }}</h1>
+        <p>{{ savedQuote()?.clientName }}</p>
+        <p class="total-xl">{{ money(savedQuote()?.total || 0) }}</p>
+        <p class="lede">El PDF se descargó y la cotización quedó en el historial.</p>
+        @if (pdfError()) {
+          <p class="field-error">{{ pdfError() }}</p>
+        }
+        <div class="stack">
+          <button type="button" class="btn btn-primary" (click)="redownload()">Descargar PDF otra vez</button>
+          <button type="button" class="btn btn-secondary" (click)="startNew()">Nueva cotización</button>
+          <a routerLink="/historial" class="btn btn-ghost">Ver historial</a>
+        </div>
+      </article>
+    </section>
+  }
+}
